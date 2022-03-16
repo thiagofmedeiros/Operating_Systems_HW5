@@ -1,10 +1,11 @@
 /* This is the client part for sending one file through network stream socket 
- and waiting for its return.  The server must be running on osnode16 in
-this version.  This writer can run anywhere. 
-To compile under the solaris version of cc.
-cc writern.c -lsocket -lxnet
+ and waiting for its return.  
+This writer can run anywhere. 
 gcc writern.c -lsocket -lxnet
-explicit library calls are required for some machines. */
+clang and most gcc (like on osnodes) does not want any libraries included (there by default)
+explicit library calls are required depending on the OS.
+
+4/13/17: Writes from info from Command line. */
 
 
 #include <sys/types.h> 
@@ -14,15 +15,20 @@ explicit library calls are required for some machines. */
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
-#define IP_ADDR "10.247.53.97"   /* osnode16.cse.usf.edu IP address, where server 
+#define IP_ADDR "10.247.53.97"   /* osnode16's IP address, where server 
                                     must run */
 /* For test #define PORT_NUM 1150 */
 /* #define PORT_NUM 1050 */
-#define PORT_NUM 1044
+//#define PORT_NUM 1044
+//#define PORT_NUM 1050
+//#define PORT_NUM 1159
+//#define PORT_NUM 1051
+//#define PORT_NUM 1050
+#define PORT_NUM 10501
 #define BUFFLEN 100
-
 
 int  main(int argc, char *argv[])
 {
@@ -57,33 +63,20 @@ int  main(int argc, char *argv[])
 	}
 
 
-	/* using open() system call to be consistent with write() and send(),etc. */
-	if ( (fd = open("infile", O_RDONLY)) == 0)
-		{
-		perror("file open");
-		exit(1);
-		}
 
-	while ( (len = read(fd, buf, BUFFLEN)) != 0)
-		{
-		/* send the message throught communication socket */
-
-                write(0, buf, len);   
+        len = strlen(argv[1]);
         printf("Connected and sending out a message of len %d\n", len);
-        fflush(stdout);
-		if (send(sock, buf, len, 0) == -1)
+
+		if (send(sock, argv[1], len, 0) == -1)
 			{
 			perror("Write to Socket Channel");
 			exit(1);
 			}
-		}
-
-	close(fd);
         len = recv(sock, buf, BUFFLEN, 0);
         printf("Got back: \n");
         fflush(stdout);
         write(0, buf, len);
-        printf("End msg*** \n");
+        printf("\nEnd msg*** \n");
 	/* close the communication socket and listenning socket */
 	close(sock);
 
