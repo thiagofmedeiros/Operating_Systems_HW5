@@ -20,25 +20,22 @@ char buf[BUFFLEN];
 pthread_mutex_t mutex;
 
 void *connection_thread(void *args) {
-    char inBuffer[BUFFLEN];
     struct threadDat *arguments = args;
+    char inbuf[BUFFLEN];
 
     printf("Connection %d open\n", arguments->threadNumber);
 
-    int len = read(arguments->connectionSocket, inBuffer, BUFFLEN);
-
-    printf("Connection %d Received: %s\n", arguments->threadNumber, inBuffer);
-
     if (pthread_mutex_trylock(&mutex) == 0) {
-        for (int i = 0; i < len; i++) {
-            buf[i] = inBuffer[i];
-        }
+        int len = read(arguments->connectionSocket, inbuf, BUFFLEN);
+
+        printf("Connection %d Received: %s\n", arguments->threadNumber, inbuf);
+
+        sleep(2);
+
+        send(arguments->connectionSocket, inbuf, len, 0);
+
         pthread_mutex_unlock(&mutex);
     }
-
-    sleep(2);
-
-    send(arguments->connectionSocket, buf, len, 0);
 
     return (NULL);
 }
@@ -67,12 +64,12 @@ int main() {
     }
 
     if (bind(fd, (struct sockaddr *)&serverAddress, addressLength) < 0) {
-        printf("Bind error");
+        perror("Bind error");
         exit(1);
     }
 
     if (listen(fd, 3) < 0) {
-        printf("Listen error");
+        perror("Listen error");
         exit(1);
     }
 
