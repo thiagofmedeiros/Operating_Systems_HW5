@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-//#define IP_ADDR "10.247.53.97"   /* osnode16.cse.usf.edu IP address, where server must run */
-#define IP_ADDR "127.0.0.1"
+#define IP_ADDR "10.247.53.97"   /* osnode16.cse.usf.edu IP address, where server must run */
+//#define IP_ADDR "127.0.0.1"
 #define PORT_NUM 10501
 #define BUFFLEN 100
 #define n 3
