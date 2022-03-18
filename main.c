@@ -4,9 +4,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
-#define IP_ADDR "10.247.53.97"   /* osnode16.cse.usf.edu IP address, where server must run */
-//#define IP_ADDR "127.0.0.1"
+//#define IP_ADDR "10.247.53.97"   /* osnode16.cse.usf.edu IP address, where server must run */
+#define IP_ADDR "127.0.0.1"
 #define PORT_NUM 10501
 #define BUFFLEN 100
 #define n 3
@@ -30,16 +31,23 @@ void *connection_thread(void *args) {
 
     printf("Connection %d Received: %s\n", arguments->threadNumber, inbuf);
 
-    if (pthread_mutex_trylock(&mutex) == 0) {
-        for (int i = 0; i < len; i++){
-            buf[i] = inbuf[i];
+    bool sent = false;
+    while(!sent) {
+        if (pthread_mutex_trylock(&mutex) == 0) {
+            for (int i = 0; i < len; i++) {
+                buf[i] = inbuf[i];
+            }
+
+            sleep(2);
+
+            printf("sending %s\n", buf);
+
+            send(arguments->connectionSocket, buf, len, 0);
+
+            sent = true;
+
+            pthread_mutex_unlock(&mutex);
         }
-
-        sleep(2);
-
-        send(arguments->connectionSocket, buf, len, 0);
-
-        pthread_mutex_unlock(&mutex);
     }
 
     return (NULL);
