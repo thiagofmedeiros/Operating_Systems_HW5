@@ -22,21 +22,15 @@ pthread_mutex_t mutex;
 
 void *connection_thread(void *args) {
     struct threadDat *arguments = args;
-    char inbuf[BUFFLEN];
 
     printf("Connection %d open\n", arguments->threadNumber);
-
-
-    int len = recv(arguments->connectionSocket, inbuf, BUFFLEN, 0);
-
-    printf("Connection %d Received: %s\n", arguments->threadNumber, inbuf);
 
     bool sent = false;
     while(!sent) {
         if (pthread_mutex_trylock(&mutex) == 0) {
-            for (int i = 0; i < len; i++) {
-                buf[i] = inbuf[i];
-            }
+            int len = recv(arguments->connectionSocket, buf, BUFFLEN, 0);
+
+            printf("Connection %d Received: %s\n", arguments->threadNumber, buf);
 
             sleep(2);
 
