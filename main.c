@@ -34,7 +34,7 @@ void *connection_thread(void *args) {
 
             sleep(2);
 
-            printf("sending %s\n", buf);
+            printf("Connection %d sending %s\n", arguments->threadNumber, buf);
 
             send(arguments->connectionSocket, buf, len, 0);
 
