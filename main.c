@@ -1,3 +1,6 @@
+/*
+*   Name: Thiago André Ferreira Medeiros
+*/
 #include <stdio.h>
 #include <pthread.h>
 #include <netinet/in.h>
@@ -12,14 +15,18 @@
 #define BUFFLEN 100
 #define n 3
 
+// Structure for thread data
 struct threadDat {
+    // Identify each socket
     int threadNumber;
+    // Socket data
     int connectionSocket;
 };
 
 char buf[BUFFLEN];
 pthread_mutex_t mutex;
 
+// Socket handler thread
 void *connection_thread(void *args) {
     struct threadDat *arguments = args;
 
@@ -27,7 +34,9 @@ void *connection_thread(void *args) {
 
     bool sent = false;
     while(!sent) {
+        // Wait to acquire lock
         if (pthread_mutex_trylock(&mutex) == 0) {
+            // Read and stores in shared memory
             int len = recv(arguments->connectionSocket, buf, BUFFLEN, 0);
 
             printf("Connection %d Received: %s\n", arguments->threadNumber, buf);
@@ -36,10 +45,12 @@ void *connection_thread(void *args) {
 
             printf("Connection %d sending %s\n", arguments->threadNumber, buf);
 
+            // Send from shared memory
             send(arguments->connectionSocket, buf, len, 0);
 
             sent = true;
 
+            // Free lock
             pthread_mutex_unlock(&mutex);
         }
     }
@@ -96,19 +107,23 @@ int main() {
         } else {
             struct threadDat *args = malloc(sizeof *args);
 
+            // Get thread data
             args->connectionSocket = connectionSocket;
             args->threadNumber = i;
 
+            // Create a thread to handle each socket
             pthread_create(&connections[i], NULL, connection_thread, args);
 
             i++;
         }
     }
 
+    // Wait for all threads to finish
     for (i = 0; i < n; i++) {
         pthread_join(connections[i], NULL);
     }
 
+    // Close connection
     close(fd);
 
     return 0;
